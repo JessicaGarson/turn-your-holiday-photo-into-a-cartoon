@@ -1,4 +1,4 @@
-# Holiday Cartoon Booth
+# Turn your holiday photo into a cartoon!
 
 Turn a holiday photo into a cartoon with MiniMax H3-Image in ComfyUI on Runpod. You upload a photo, pick a style and then download or share the result.
 
