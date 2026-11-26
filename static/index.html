@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holiday Cartoon Booth</title>
+<style>
+  :root { --bg:#14101f; --card:#1f1930; --ink:#f6f2ff; --muted:#b3a8cc; --accent:#8b5cf6; --red:#e2384d; --green:#2fa36b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: radial-gradient(circle at 20% 0%, #2a1f45, var(--bg) 60%); color:var(--ink); min-height:100vh; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 2.2rem; margin: 0 0 4px; }
+  h1 span { color: var(--red); }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .step { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  .step h2 { font-size: 1rem; margin: 0 0 12px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+  .drop { border: 2px dashed #4a3d6b; border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; color: var(--muted); }
+  .drop.has { padding: 8px; border-style: solid; }
+  .drop img { max-height: 260px; max-width: 100%; border-radius: 8px; display:block; margin: 0 auto; }
+  .styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .style { background: #2a2240; border: 2px solid transparent; color: var(--ink); border-radius: 12px; padding: 14px 10px; font-size: .95rem; cursor: pointer; }
+  .style .e { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+  .style.on { border-color: var(--accent); background: #33285a; }
+  button.go { width: 100%; padding: 16px; border: 0; border-radius: 12px; background: linear-gradient(90deg, var(--red), var(--accent)); color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+  button.go:disabled { opacity: .5; cursor: default; }
+  .status { color: var(--muted); text-align: center; margin-top: 12px; min-height: 1.4em; }
+  .result { display: none; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .compare figure { margin: 0; }
+  .compare img { width: 100%; border-radius: 10px; display: block; }
+  .compare figcaption { color: var(--muted); font-size: .85rem; margin-top: 6px; text-align: center; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .actions a, .actions button { flex: 1; text-align: center; padding: 12px; border-radius: 10px; border: 1px solid #4a3d6b; background: #2a2240; color: var(--ink); text-decoration: none; font-weight: 600; cursor: pointer; font-size: 1rem; }
+  @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Holiday Cartoon <span>Booth</span></h1>
+  <p class="sub">Upload a photo, pick a style, share the result. Powered by MiniMax H3-Image in ComfyUI on Runpod.</p>
+
+  <section class="step">
+    <h2>1. Upload a photo</h2>
+    <input type="file" id="photo" accept="image/*" hidden>
+    <div class="drop" id="drop">Click or drop a holiday photo here</div>
+  </section>
+
+  <section class="step">
+    <h2>2. Pick a style</h2>
+    <div class="styles" id="styles"></div>
+  </section>
+
+  <section class="step">
+    <button class="go" id="go" disabled>Make my cartoon</button>
+    <div class="status" id="status"></div>
+  </section>
+
+  <section class="step result" id="result">
+    <h2>3. Share it</h2>
+    <div class="compare">
+      <figure><img id="before" alt="Original photo"><figcaption>Before</figcaption></figure>
+      <figure><img id="after" alt="Cartoon version"><figcaption id="afterCap">After</figcaption></figure>
+    </div>
+    <div class="actions">
+      <a id="download" download>Download</a>
+      <button id="share">Share</button>
+      <button id="again">Try another style</button>
+    </div>
+  </section>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let file = null, style = null, resultBlob = null, styleLabels = {};
+
+  fetch("/api/styles").then(r => r.json()).then(styles => {
+    for (const { key, ...s } of styles) {
+      styleLabels[key] = s.label;
+      const b = document.createElement("button");
+      b.className = "style";
+      b.innerHTML = `<span class="e">${s.emoji}</span>${s.label}`;
+      b.onclick = () => {
+        style = key;
+        document.querySelectorAll(".style").forEach(x => x.classList.remove("on"));
+        b.classList.add("on");
+        ready();
+      };
+      $("styles").appendChild(b);
+    }
+  });
+
+  function setFile(f) {
+    if (!f || !f.type.startsWith("image/")) return;
+    file = f;
+    const url = URL.createObjectURL(f);
+    $("drop").classList.add("has");
+    $("drop").innerHTML = `<img src="${url}" alt="Your photo">`;
+    $("before").src = url;
+    ready();
+  }
+  $("photo").onchange = (e) => setFile(e.target.files[0]);
+  $("drop").ondragover = (e) => e.preventDefault();
+  $("drop").ondrop = (e) => { e.preventDefault(); setFile(e.dataTransfer.files[0]); };
+  $("drop").onclick = () => $("photo").click();
+
+  function ready() { $("go").disabled = !(file && style); }
+
+  $("go").onclick = async () => {
+    $("go").disabled = true;
+    $("result").style.display = "none";
+    const chosen = style;  // remember the style in case the user clicks another one mid-run
+    const started = Date.now();
+    const tick = setInterval(() => {
+      $("status").textContent = `Drawing your cartoon... ${Math.round((Date.now() - started) / 1000)}s`;
+    }, 1000);
+    try {
+      const form = new FormData();
+      form.append("photo", file);
+      form.append("style", chosen);
+      const { job } = await (await fetch("/api/cartoon", { method: "POST", body: form })).json();
+      let res;
+      do {
+        await new Promise(r => setTimeout(r, 2000));
+        res = await (await fetch(`/api/cartoon/${job}`)).json();
+      } while (res.status === "running");
+      if (res.status !== "done") throw new Error(JSON.stringify(res.detail));
+      resultBlob = await (await fetch(res.url)).blob();
+      const url = URL.createObjectURL(resultBlob);
+      $("after").src = url;
+      $("afterCap").textContent = `After: ${styleLabels[chosen]}`;
+      $("download").href = url;
+      $("download").download = `holiday-cartoon-${chosen}.jpg`;
+      $("result").style.display = "block";
+      $("status").textContent = `Done in ${Math.round((Date.now() - started) / 1000)}s`;
+      $("result").scrollIntoView({ behavior: "smooth" });
+    } catch (err) {
+      $("status").textContent = "Something went wrong: " + err.message;
+    } finally {
+      clearInterval(tick);
+      ready();
+    }
+  };
+
+  $("share").onclick = async () => {
+    const f = new File([resultBlob], $("download").download, { type: "image/jpeg" });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], title: "My holiday cartoon", text: "Made with MiniMax H3-Image on Runpod" });
+    } else {
+      $("download").click();
+      $("status").textContent = "Sharing isn't supported in this browser, so we downloaded it instead.";
+    }
+  };
+
+  $("again").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+</script>
+</body>
+</html>

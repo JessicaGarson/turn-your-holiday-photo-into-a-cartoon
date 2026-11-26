@@ -1,0 +1,32 @@
+{
+  "classic-cartoon": {
+    "label": "Classic cartoon",
+    "emoji": "📺",
+    "instruction": "Redraw <Picture 1> as a bright 2D holiday cartoon in a hand-drawn animated-series style: bold clean outlines, flat cel-shaded colors, simple soft shading, and a cheerful festive mood. Keep the same composition, subjects, poses, and main colors so it is clearly the same scene."
+  },
+  "claymation": {
+    "label": "Claymation",
+    "emoji": "🧸",
+    "instruction": "Turn <Picture 1> into a still from a stop-motion claymation holiday special: everything sculpted from smooth modeling clay and felt, with visible fingerprints, rounded chunky shapes, and warm miniature-set lighting with a shallow depth of field. Keep the same composition, subjects, and main colors."
+  },
+  "storybook": {
+    "label": "Storybook",
+    "emoji": "📖",
+    "instruction": "Repaint <Picture 1> as a page from a cozy vintage children's picture book: loose watercolor washes, fine ink linework, soft paper texture, and gentle warm light. Keep the same composition, subjects, and main colors so it is clearly the same scene."
+  },
+  "retro-card": {
+    "label": "Retro card",
+    "emoji": "💌",
+    "instruction": "Redraw <Picture 1> as a 1950s mid-century holiday greeting card illustration: simplified geometric shapes, a limited palette of red, teal, cream, and gold, slight print misregistration, and a subtle halftone paper texture. Keep the same composition and subjects."
+  },
+  "anime": {
+    "label": "Cozy anime",
+    "emoji": "✨",
+    "instruction": "Repaint <Picture 1> as a frame from a cozy hand-painted anime film: soft painterly backgrounds, clean expressive linework, glowing warm highlights, and a calm wintry atmosphere. Keep the same composition, subjects, and main colors."
+  },
+  "pixel-art": {
+    "label": "Pixel art",
+    "emoji": "👾",
+    "instruction": "Convert <Picture 1> into detailed 16-bit pixel art like a retro holiday video game scene: crisp square pixels, a limited festive palette, dithered shading, and no blur or anti-aliasing. Keep the same composition, subjects, and main colors."
+  }
+}
